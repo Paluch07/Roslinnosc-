@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linia kontrolna — Technologia Żywności Roślinnej</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #211c17;
+    --panel: #2b241d;
+    --panel-2: #342c23;
+    --line: #45392b;
+    --paper: #f2e9d8;
+    --muted: #a99c86;
+    --gold: #d6a84a;
+    --ok: #7fa66b;
+    --bad: #c1543a;
+
+    --c-mlyn: #d6a84a;
+    --c-piek: #b87333;
+    --c-cukr: #a23b54;
+    --c-olej: #8a9a3b;
+    --c-soki: #c1543a;
+  }
+  *{ box-sizing: border-box; }
+  html{ -webkit-tap-highlight-color: transparent; }
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(214,168,74,0.08), transparent 60%),
+      radial-gradient(900px 500px at 100% 110%, rgba(162,59,84,0.10), transparent 60%),
+      var(--bg);
+    color: var(--paper);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    display:flex;
+    justify-content:center;
+    padding: 28px 16px 60px;
+  }
+  .app{ width:100%; max-width: 720px; }
+
+  .masthead{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 14px;
+  }
+  .masthead .brand{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .masthead .clock{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  h1{
+    font-family:'Zilla Slab', serif;
+    font-weight:700;
+    font-size: clamp(28px, 5.5vw, 40px);
+    line-height:1.05;
+    margin: 6px 0 8px;
+    color: var(--paper);
+  }
+  .lede{
+    color: var(--muted);
+    font-size:15px;
+    line-height:1.55;
+    max-width: 56ch;
+  }
+
+  /* Batch strip: 5 segments representing the 5 process sections */
+  .batch-strip{
+    display:flex;
+    gap:3px;
+    margin: 22px 0 6px;
+    height:8px;
+  }
+  .batch-strip span{
+    flex:1;
+    background: var(--line);
+    border-radius: 2px;
+    transition: background .25s ease, transform .25s ease;
+  }
+  .batch-strip span.filled{ transform: scaleY(1.35); }
+  .batch-legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap: 10px 16px;
+    margin: 10px 0 26px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    color: var(--muted);
+  }
+  .batch-legend .dot{
+    display:inline-block; width:8px; height:8px; border-radius:1px; margin-right:6px; vertical-align:middle;
+  }
+
+  /* Start screen */
+  .panel{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 26px;
+  }
+  .btn{
+    appearance:none;
+    border:none;
+    cursor:pointer;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    border-radius: 4px;
+    padding: 14px 22px;
+    transition: transform .12s ease, filter .12s ease, background .12s ease;
+  }
+  .btn:active{ transform: scale(0.98); }
+  .btn-primary{
+    background: var(--gold);
+    color: #211c17;
+    width:100%;
+  }
+  .btn-primary:hover{ filter: brightness(1.08); }
+  .btn-ghost{
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--paper);
+  }
+  .btn-ghost:hover{ border-color: var(--gold); color: var(--gold); }
+
+  .toggle-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding: 13px 0;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+  }
+  .toggle-row:first-of-type{ border-top:none; }
+  .toggle-row .label{ color: var(--paper); }
+  .toggle-row .desc{ display:block; color: var(--muted); font-size:12.5px; margin-top:2px; }
+  .switch{
+    position:relative; width:42px; height:24px; flex:0 0 auto;
+    background: var(--panel-2); border:1px solid var(--line); border-radius: 20px;
+    cursor:pointer;
+  }
+  .switch i{
+    position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%;
+    background: var(--muted); transition: all .15s ease;
+  }
+  .switch.on{ background: rgba(214,168,74,0.25); border-color: var(--gold); }
+  .switch.on i{ left:20px; background: var(--gold); }
+
+  #screen-start .btn-primary{ margin-top:20px; }
+
+  /* Question screen */
+  #screen-quiz{ display:none; }
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom: 16px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .topbar .count b{ color: var(--paper); }
+  .exit-link{ color: var(--muted); text-decoration:none; border-bottom: 1px dotted var(--muted); }
+  .exit-link:hover{ color: var(--gold); border-color: var(--gold); }
+
+  .tag{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    padding: 4px 9px;
+    border-radius: 3px;
+    border:1px solid var(--line);
+    color: var(--paper);
+    margin-bottom: 14px;
+  }
+  .tag .swatch{ width:7px; height:7px; border-radius:1px; }
+
+  .qcard{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--gold);
+    border-radius: 6px;
+    padding: 26px;
+  }
+  .qtopic{
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-bottom:6px;
+  }
+  .qtext{
+    font-family:'Zilla Slab', serif;
+    font-weight:600;
+    font-size: 21px;
+    line-height:1.32;
+    margin: 0 0 20px;
+    color: var(--paper);
+  }
+  .options{ display:flex; flex-direction:column; gap:10px; }
+  .opt{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    text-align:left;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    color: var(--paper);
+    border-radius: 5px;
+    padding: 13px 15px;
+    font-size: 15px;
+    line-height:1.4;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .opt:hover:not(:disabled){ border-color: var(--gold); }
+  .opt .idx{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color: var(--muted);
+    flex: 0 0 auto;
+    width:18px;
+    padding-top:1px;
+  }
+  .opt:disabled{ cursor:default; }
+  .opt.correct{ border-color: var(--ok); background: rgba(127,166,107,0.14); }
+  .opt.correct .idx{ color: var(--ok); }
+  .opt.wrong{ border-color: var(--bad); background: rgba(193,84,58,0.14); }
+  .opt.wrong .idx{ color: var(--bad); }
+  .opt.dim{ opacity:0.55; }
+
+  .explanation{
+    display:none;
+    margin-top: 18px;
+    padding: 14px 16px;
+    background: var(--panel-2);
+    border-left: 3px solid var(--gold);
+    border-radius: 4px;
+    font-size: 13.5px;
+    line-height:1.55;
+    color: #d9cfba;
+  }
+  .explanation b{ color: var(--gold); font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:.06em; }
+  .explanation.show{ display:block; }
+
+  .qfooter{
+    display:flex;
+    justify-content:flex-end;
+    margin-top: 20px;
+  }
+  .qfooter .btn-primary{ width:auto; padding: 12px 26px; opacity:0; pointer-events:none; transition: opacity .2s ease; }
+  .qfooter .btn-primary.ready{ opacity:1; pointer-events:auto; }
+
+  /* Results screen */
+  #screen-results{ display:none; }
+  .score-hero{
+    text-align:center;
+    padding: 34px 20px 26px;
+  }
+  .score-num{
+    font-family:'Zilla Slab', serif;
+    font-weight:700;
+    font-size: 64px;
+    line-height:1;
+    color: var(--gold);
+  }
+  .score-num span{ font-size: 26px; color: var(--muted); font-weight:600; }
+  .score-msg{
+    font-size: 15px;
+    color: var(--paper);
+    margin-top: 10px;
+    max-width: 46ch;
+    margin-left:auto; margin-right:auto;
+  }
+  .review{ margin-top: 22px; display:flex; flex-direction:column; gap:8px; }
+  .review-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding: 11px 13px;
+    border:1px solid var(--line);
+    border-radius:5px;
+    font-size: 13.5px;
+    background: var(--panel-2);
+  }
+  .review-item .mark{ font-family:'IBM Plex Mono', monospace; font-size:12px; flex:0 0 auto; width:16px; }
+  .review-item.ok .mark{ color: var(--ok); }
+  .review-item.no .mark{ color: var(--bad); }
+  .review-item .txt{ color: var(--muted); }
+  .review-item.no .txt{ color: var(--paper); }
+
+  .results-actions{ display:flex; gap:10px; margin-top:24px; flex-wrap:wrap; }
+  .results-actions .btn{ flex:1; min-width: 160px; }
+
+  footer{
+    margin-top: 34px;
+    text-align:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; }
+  }
+
+  @media (max-width: 480px){
+    .qtext{ font-size:18px; }
+    .score-num{ font-size:52px; }
+    .panel, .qcard{ padding:20px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="masthead">
+    <div class="brand">Panel kontrolny // TŻR</div>
+    <div class="clock" id="clock"></div>
+  </div>
+
+  <!-- START SCREEN -->
+  <div id="screen-start">
+    <h1>Linia kontrolna<br>18 partii do sprawdzenia</h1>
+    <p class="lede">Powtórka pytań jednokrotnego wyboru z bazy „Technologia żywności roślinnej” — przemiał, pieczywo, cukier, olej i soki. Każde pytanie to jedna partia surowca do odbioru.</p>
+
+    <div class="batch-strip" id="legend-strip"></div>
+    <div class="batch-legend" id="legend-list"></div>
+
+    <div class="panel">
+      <div class="toggle-row">
+        <div>
+          <div class="label">Losowa kolejność pytań</div>
+          <span class="desc">Za każdym podejściem inna kolejność partii</span>
+        </div>
+        <div class="switch on" id="toggle-order" role="switch" aria-checked="true" tabindex="0"></div>
+      </div>
+      <div class="toggle-row">
+        <div>
+          <div class="label">Mieszaj odpowiedzi</div>
+          <span class="desc">Poprawna odpowiedź nie zawsze na tej samej pozycji</span>
+        </div>
+        <div class="switch on" id="toggle-shuffle" role="switch" aria-checked="true" tabindex="0"></div>
+      </div>
+      <button class="btn btn-primary" id="btn-start">Rozpocznij kontrolę →</button>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="screen-quiz">
+    <div class="topbar">
+      <span class="count">Partia <b id="q-index">1</b> / <span id="q-total">18</span></span>
+      <a href="#" class="exit-link" id="btn-exit">przerwij</a>
+    </div>
+    <div class="batch-strip" id="progress-strip"></div>
+
+    <div class="qcard">
+      <div class="tag" id="q-tag"><span class="swatch"></span><span id="q-tag-text"></span></div>
+      <div class="qtext" id="q-text"></div>
+      <div class="options" id="q-options"></div>
+      <div class="explanation" id="q-explanation"><b>Protokół</b><br><span id="q-explanation-text"></span></div>
+      <div class="qfooter">
+        <button class="btn btn-primary" id="btn-next">Następna partia →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div id="screen-results">
+    <div class="panel score-hero">
+      <div class="score-num" id="res-score">0<span id="res-total">/18</span></div>
+      <div class="score-msg" id="res-msg"></div>
+    </div>
+    <div class="review" id="res-review"></div>
+    <div class="results-actions">
+      <button class="btn btn-primary" id="btn-retry">Nowa kontrola</button>
+      <button class="btn btn-ghost" id="btn-review-wrong">Powtórz tylko błędy</button>
+    </div>
+  </div>
+
+  <footer>Baza pytań: Technologia Żywności Roślinnej — 18/274 wybranych</footer>
+</div>
+
+<script>
+const QUESTIONS = [{"topic": "Wybielanie cukru", "section": "Cukier biały z buraków cukrowych", "question": "Zabielanie (wybielanie) cukru w wirówce polega na:", "options": ["Spryskiwaniu kryształów wodą lub parą dla usunięcia resztek syropu", "Dodawaniu do cukru białego barwnika spożywczego rozjaśniającego kryształy", "Mieszaniu cukru z mączką wapienną", "Podgrzewaniu cukru aż do jego stopienia"], "correct": 0, "explanation": "Podczas wirowania kryształy zabielą się, spryskując je wodą lub parą, co zmywa resztki barwnego syropu międzykryształowego.", "code": "CUKR"}, {"topic": "Największy producent cukru w Polsce", "section": "Cukier biały z buraków cukrowych", "question": "Która firma jest największym producentem cukru w Polsce?", "options": ["Krajowa Spółka Cukrowa (Krajowa Grupa Spożywcza)", "Pfeifer & Langen Polska (duży koncern z Poznania)", "Südzucker Polska", "Nordzucker Polska"], "correct": 0, "explanation": "Największym producentem w Polsce jest Krajowa Spółka Cukrowa (obecnie Krajowa Grupa Spożywcza) — ma najwięcej, bo 7 z 17 cukrowni.", "code": "CUKR"}, {"topic": "Po co para wodna przy pieczeniu", "section": "Pieczywo i żywność ekstrudowana", "question": "W jakiej temperaturze komory rozpoczyna się pierwsza faza wypieku (zapiekanie) pieczywa pszennego?", "options": ["250–260°C, z doprowadzeniem pary wodnej", "180–190°C, w suchej atmosferze", "100°C, w atmosferze całkowicie pozbawionej pary wodnej", "320–350°C, w atmosferze azotu"], "correct": 0, "explanation": "Zapiekanie prowadzi się w 250– 260°C z parą wodną (wilgotność ~80–85%), która ułatwia pobieranie ciepła i tworzenie skórki.", "code": "PIEK"}, {"topic": "Oporna skrobia", "section": "Pieczywo i żywność ekstrudowana", "question": "Skrobia oporna (RS), nietrawiona w jelicie cienkim:", "options": ["Jest składnikiem błonnika i daje w okrężnicy krótkołańcuchowe kwasy tłuszczowe", "Podnosi indeks glikemiczny pieczywa niemal do najwyższej możliwej wartości granicznej", "Jest zupełnie bezużyteczna dla organizmu", "Ulega pełnej hydrolizie już w żołądku"], "correct": 0, "explanation": "Skrobia oporna (3–20%) trafia do okrężnicy jako błonnik i jest przetwarzana m.in. na krótkołańcuchowe kwasy tłuszczowe, ważne dla błony śluzowej jelita.", "code": "PIEK"}, {"topic": "Jak zachowuje się gluten podczas pieczenia", "section": "Pieczywo i żywność ekstrudowana", "question": "W jakiej temperaturze denaturuje gluten, tworząc szkielet pieczywa?", "options": ["Ok. 70°C", "Ok. 30°C", "Ok. 100°C", "Ok. 150°C"], "correct": 0, "explanation": "Gluten pęcznieje w ~50°C, a w ~70°C denaturuje, tworząc szkielet pieczywa. W zbliżonej temperaturze (40–60°C) zachodzi też kleikowanie skrobi.", "code": "PIEK"}, {"topic": "Vottating (Vibronet / Votator)", "section": "Przemiał ziarna pszenicy", "question": "Jak nazywa się nowoczesny, automatycznie sterowany nawilżacz pionowy skracający czas nawilżania nawet do 8 godzin?", "options": ["Vibronet", "Votator", "Entoleter", "Dekanter"], "correct": 0, "explanation": "Vibronet to automatyczny nawilżacz pionowy — skrócił czas nawilżania do ~8 h, wyeliminował uszkodzenia ziarna i poprawił wartość wypiekową mąki.", "code": "MŁYN"}, {"topic": "Jak klasyfikuje się typy mąki", "section": "Przemiał ziarna pszenicy", "question": "Co w Polsce decyduje o typie (gatunku) mąki, np. typ 450 czy typ 750?", "options": ["Zawartość popiołu", "Zawartość glutenu", "Zawartość tłuszczu", "Barwa mąki"], "correct": 0, "explanation": "W Polsce o typie mąki decyduje zawartość popiołu (pozostałość po spaleniu). Np. tortowa typ 450 zawiera do 0,48% popiołu, chlebowa typ 750 do 0,78%.", "code": "MŁYN"}, {"topic": "Co to jest ultrafiltracja", "section": "Koncentraty i soki z jabłek", "question": "Czym jest ultrafiltracja stosowana w produkcji soków?", "options": ["Techniką membranową rozdzielającą cząstki wg wielkości bez użycia ciepła", "Metodą zagęszczania przez odparowanie wody", "Filtracją przez ziemię okrzemkową", "Sposobem dodawania preparatów pektynolitycznych do sklarowanego soku"], "correct": 0, "explanation": "Ultrafiltracja to technika membranowa — duże cząsteczki (np. białka) zatrzymuje membrana (pory 0,1–0,001 μm), a rozpuszczalnik i małe cząsteczki przechodzą, bez wykorzystania ciepła.", "code": "SOKI"}, {"topic": "Ile wody dodaje się przed mieleniem ziarna (procentowo)", "section": "Przemiał ziarna pszenicy", "question": "Do jakiej wilgotności najczęściej kieruje się ziarno pszenicy do przemiału?", "options": ["Ok. 15,5–16%", "Ok. 5–6%", "Ok. 25–28%", "Ok. 35–40%"], "correct": 0, "explanation": "Wysoką efektywność przemiału zapewnia ziarno o wilgotności 15,5–16% (zależnie od szklistości i twardości).", "code": "MŁYN"}, {"topic": "Temperatura zimnego tłoczenia — maksymalna", "section": "Olej rzepakowy i tłuszcze spożywcze", "question": "Jaka temperatura nie powinna zostać przekroczona podczas tłoczenia oleju na zimno?", "options": ["50°C", "120°C", "180°C", "270°C"], "correct": 0, "explanation": "Przy tłoczeniu na zimno temperatura nie powinna wzrosnąć powyżej 50°C — dzięki temu olej zachowuje naturalny smak, zapach i wartość odżywczą.", "code": "OLEJ"}, {"topic": "Prasa ślimakowa / taśmowa oraz prasa okresowa czy nieokresowa", "section": "Koncentraty i soki z jabłek", "question": "Które prasy do tłoczenia soku pracują w sposób okresowy (a nie ciągły)?", "options": ["Koszowe i cylindryczne", "Ślimakowe i taśmowe", "Wyłącznie taśmowe", "Wyłącznie ślimakowe"], "correct": 0, "explanation": "Okresowe: prasy koszowe i cylindryczne. Ciągłe: prasy ślimakowe i taśmowe.", "code": "SOKI"}, {"topic": "Po co rowki na walcach (mlewie) przy mieleniu", "section": "Przemiał ziarna pszenicy", "question": "Kiedy w mlewnikach stosuje się walce rowkowane zamiast gładkich?", "options": ["Gdy w mlewie znajduje się pewna ilość łuski", "Gdy mlewo jest całkowicie pozbawione łuski", "Wyłącznie w ostatnim pasażu wymiałowym", "Gdy chce się jedynie delikatnie gnieść mlewo"], "correct": 0, "explanation": "Walce rowkowane stosuje się, gdy w mlewie jest łuska — działają wtedy siły tnące. Do mlewa bez łuski lepsze są walce gładkie lub szorstkie (gniecenie i rozcieranie).", "code": "MŁYN"}, {"topic": "Alternatywa dla ultrafiltracji", "section": "Koncentraty i soki z jabłek", "question": "Na czym polega alternatywa dla ultrafiltracji — klarowanie soku?", "options": ["Na dodaniu żelatyny, tworzących opadające aglomeraty", "Na przepuszczeniu przez sok dużej ilości sprężonego CO2", "Na uwodornieniu pektyn", "Na dodaniu ługu sodowego"], "correct": 0, "explanation": "Klarowanie polega na dodaniu żelatyny lub jej kombinacji z zolem krzemionkowym (o przeciwnym ładunku); powstają duże aglomeraty szybko opadające na dno. Stosuje się też bentonit.", "code": "SOKI"}, {"topic": "Co daje ekstruder dwuślimakowy", "section": "Pieczywo i żywność ekstrudowana", "question": "Czym różnią się ekstrudery dwuślimakowe od jednoślimakowych?", "options": ["Są bardziej elastyczne i przetwarzają surowce o małej ciągliwości", "Pracują wyłącznie okresowo", "Nie nadają się do żywności skrobiowej", "W ogóle nie wymagają stosowania matrycy formującej na końcu ślimaka"], "correct": 0, "explanation": "Ekstrudery dwuślimakowe są bardziej elastyczne; w wersji „zgodnej” przetwarzają surowce o małej ciągliwości (np. mąkę), których nie da się obrabiać w jednoślimakowych.", "code": "PIEK"}, {"topic": "Aromaty przy sokach", "section": "Koncentraty i soki z jabłek", "question": "Dlaczego łatwolotne składniki aromatu odzyskuje się i zawraca do soku podczas jego odtwarzania?", "options": ["Bo podczas zagęszczania sok jest dearomatyzowany, a aromat trzeba przywrócić", "Bo aromat zwiększa trwałość koncentratu", "Bo odzyskany aromat obniża lepkość i gęstość gotowego, odtworzonego soku", "Bo aromat zapobiega reakcjom Maillarda"], "correct": 0, "explanation": "Podczas wstępnego zagęszczania w wyparce następuje dearomatyzacja — lotne składniki aromatu trafiają do oparów, są zagęszczane w kolumnie rektyfikacyjnej i zwracane do soku przy odtwarzaniu.", "code": "SOKI"}, {"topic": "Do jakiej wartości dochodzi wydajność soku przy tłoczeniu miazgi", "section": "Koncentraty i soki z jabłek", "question": "Do jakiej wartości dochodzi wydajność soku przy tłoczeniu miazgi bez obróbki enzymatycznej?", "options": ["Do około 84%", "Do około 30%", "Do około 99%", "Do około 60%"], "correct": 0, "explanation": "Bez enzymów wydajność dochodzi do ~84%; obróbka preparatami pektynolitycznymi podnosi ją do rzędu 90%.", "code": "SOKI"}, {"topic": "Po co zwiększa się pH do ok. 11 przy oczyszczaniu soku (defekacja)", "section": "Cukier biały z buraków cukrowych", "question": "Jaki jest główny cel defekacji wstępnej (nawapniania wstępnego)?", "options": ["Związanie niecukrów w nierozpuszczalne połączenia z wapniem", "Krystalizacja sacharozy", "Odparowanie wody z soku", "Nadanie gotowemu cukrowi krystalicznie białej barwy i połysku"], "correct": 0, "explanation": "Defekacja wstępna wiąże niecukry z wapniem (osad/koagulat), alkalizuje sok (pH ~11), hamuje inwersję i rozwój drobnoustrojów.", "code": "CUKR"}, {"topic": "Czego się używa przy defekacji wstępnej", "section": "Cukier biały z buraków cukrowych", "question": "Co jest głównym źródłem jonów wapnia stosowanym do oczyszczania soku surowego?", "options": ["Mleko wapienne", "Kwas siarkowy", "Węglan sodu", "Ziemia okrzemkowa"], "correct": 0, "explanation": "Podstawowym źródłem Ca2+ w defekacji jest mleko wapienne (Ca(OH)2). Wiąże ono niecukry i alkalizuje sok, hamując inwersję i rozwój drobnoustrojów.", "code": "CUKR"}];
+const SECTION_META = {"Przemiał ziarna pszenicy": {"code": "MŁYN", "hex": "#D6A84A"}, "Pieczywo i żywność ekstrudowana": {"code": "PIEK", "hex": "#B87333"}, "Cukier biały z buraków cukrowych": {"code": "CUKR", "hex": "#A23B54"}, "Olej rzepakowy i tłuszcze spożywcze": {"code": "OLEJ", "hex": "#8A9A3B"}, "Koncentraty i soki z jabłek": {"code": "SOKI", "hex": "#C1543A"}};
+</script>
+<script>
+(function(){
+  "use strict";
+
+  // ---------- clock ----------
+  function tick(){
+    const d = new Date();
+    const p = n => String(n).padStart(2,'0');
+    document.getElementById('clock').textContent = `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+  }
+  tick(); setInterval(tick, 1000);
+
+  // ---------- legend ----------
+  const order = ["Przemiał ziarna pszenicy","Pieczywo i żywność ekstrudowana","Cukier biały z buraków cukrowych","Olej rzepakowy i tłuszcze spożywcze","Koncentraty i soki z jabłek"];
+  const legendStrip = document.getElementById('legend-strip');
+  const legendList = document.getElementById('legend-list');
+  order.forEach(sec=>{
+    const meta = SECTION_META[sec];
+    const seg = document.createElement('span');
+    seg.style.background = meta.hex;
+    seg.style.opacity = '0.85';
+    legendStrip.appendChild(seg);
+    const item = document.createElement('span');
+    item.innerHTML = `<span class="dot" style="background:${meta.hex}"></span>${sec}`;
+    legendList.appendChild(item);
+  });
+
+  // ---------- state ----------
+  let pool = [];       // active question set for this run
+  let idx = 0;
+  let answers = [];    // {correct:bool, topic, question}
+  let answered = false;
+  let orderShuffle = true;
+  let optionShuffle = true;
+
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function prepareQuestion(q){
+    let options = q.options.map((text,i)=>({text, isCorrect: i===q.correct}));
+    if(optionShuffle) options = shuffle(options);
+    return Object.assign({}, q, {shuffledOptions: options});
+  }
+
+  function buildPool(sourceList){
+    let list = sourceList.slice();
+    if(orderShuffle) list = shuffle(list);
+    return list.map(prepareQuestion);
+  }
+
+  // ---------- toggles ----------
+  function bindSwitch(el, initial, onChange){
+    let state = initial;
+    function render(){
+      el.classList.toggle('on', state);
+      el.setAttribute('aria-checked', state);
+    }
+    render();
+    function flip(){ state = !state; render(); onChange(state); }
+    el.addEventListener('click', flip);
+    el.addEventListener('keydown', e=>{ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); flip(); } });
+  }
+  bindSwitch(document.getElementById('toggle-order'), true, v=>orderShuffle=v);
+  bindSwitch(document.getElementById('toggle-shuffle'), true, v=>optionShuffle=v);
+
+  // ---------- screens ----------
+  const screens = {
+    start: document.getElementById('screen-start'),
+    quiz: document.getElementById('screen-quiz'),
+    results: document.getElementById('screen-results'),
+  };
+  function show(name){
+    Object.values(screens).forEach(s=>s.style.display='none');
+    screens[name].style.display='block';
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  // ---------- progress strip (quiz) ----------
+  const progressStrip = document.getElementById('progress-strip');
+  function renderProgress(){
+    progressStrip.innerHTML = '';
+    pool.forEach((q,i)=>{
+      const seg = document.createElement('span');
+      const meta = SECTION_META[q.section];
+      if(i < idx){
+        seg.style.background = meta.hex;
+        seg.classList.add('filled');
+      } else if(i === idx){
+        seg.style.background = meta.hex;
+        seg.style.opacity = '0.5';
+      }
+      progressStrip.appendChild(seg);
+    });
+  }
+
+  // ---------- render question ----------
+  const qIndexEl = document.getElementById('q-index');
+  const qTotalEl = document.getElementById('q-total');
+  const qTagText = document.getElementById('q-tag-text');
+  const qTagSwatch = document.querySelector('#q-tag .swatch');
+  const qText = document.getElementById('q-text');
+  const qOptions = document.getElementById('q-options');
+  const qExplanation = document.getElementById('q-explanation');
+  const qExplanationText = document.getElementById('q-explanation-text');
+  const btnNext = document.getElementById('btn-next');
+
+  function renderQuestion(){
+    answered = false;
+    btnNext.classList.remove('ready');
+    qExplanation.classList.remove('show');
+
+    const q = pool[idx];
+    const meta = SECTION_META[q.section];
+
+    qIndexEl.textContent = idx+1;
+    qTotalEl.textContent = pool.length;
+    qTagText.textContent = `${q.code} — ${q.section}`;
+    qTagSwatch.style.background = meta.hex;
+    qText.textContent = q.question;
+    qExplanationText.textContent = q.explanation;
+
+    qOptions.innerHTML = '';
+    q.shuffledOptions.forEach((opt, i)=>{
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.innerHTML = `<span class="idx">${String.fromCharCode(65+i)}</span><span>${opt.text}</span>`;
+      btn.addEventListener('click', ()=>selectOption(btn, opt));
+      qOptions.appendChild(btn);
+    });
+
+    renderProgress();
+  }
+
+  function selectOption(btn, opt){
+    if(answered) return;
+    answered = true;
+
+    const allBtns = Array.from(qOptions.children);
+    allBtns.forEach((b, i)=>{
+      const o = pool[idx].shuffledOptions[i];
+      b.disabled = true;
+      if(o.isCorrect){ b.classList.add('correct'); }
+      else if(b === btn){ b.classList.add('wrong'); }
+      else { b.classList.add('dim'); }
+    });
+
+    qExplanation.classList.add('show');
+    btnNext.classList.add('ready');
+    btnNext.textContent = (idx === pool.length-1) ? 'Zobacz wynik →' : 'Następna partia →';
+
+    answers.push({
+      topic: pool[idx].topic,
+      section: pool[idx].section,
+      question: pool[idx].question,
+      correct: opt.isCorrect,
+    });
+  }
+
+  btnNext.addEventListener('click', ()=>{
+    if(!answered) return;
+    if(idx < pool.length-1){
+      idx++;
+      renderQuestion();
+    } else {
+      showResults();
+    }
+  });
+
+  document.getElementById('btn-exit').addEventListener('click', (e)=>{
+    e.preventDefault();
+    if(confirm('Przerwać kontrolę i wrócić na start?')) show('start');
+  });
+
+  // ---------- start ----------
+  document.getElementById('btn-start').addEventListener('click', ()=>{
+    idx = 0; answers = [];
+    pool = buildPool(QUESTIONS);
+    show('quiz');
+    renderQuestion();
+  });
+
+  // ---------- results ----------
+  const MESSAGES = [
+    {min: 18, msg: "Partia zwolniona bez zastrzeżeń. Możesz kierować linią produkcyjną samodzielnie."},
+    {min: 15, msg: "Wysoka wydajność tłoczenia. Jeszcze jedna kontrola i jakość ekstra virgin."},
+    {min: 11, msg: "Solidna partia, ale kilka niecukrów zostało w soku — warto przefiltrować wiedzę jeszcze raz."},
+    {min: 6,  msg: "Mętny wynik. Sok wymaga dodatkowej defekacji — wróć do materiałów."},
+    {min: 0,  msg: "Partia odrzucona przez kontrolę jakości. Czas na powtórkę od śrutowania."},
+  ];
+  function pickMessage(score){
+    return MESSAGES.find(m => score >= m.min).msg;
+  }
+
+  function showResults(){
+    const score = answers.filter(a=>a.correct).length;
+    document.getElementById('res-score').innerHTML = `${score}<span>/${pool.length}</span>`;
+    document.getElementById('res-msg').textContent = pickMessage(score);
+
+    const reviewEl = document.getElementById('res-review');
+    reviewEl.innerHTML = '';
+    answers.forEach(a=>{
+      const row = document.createElement('div');
+      row.className = 'review-item ' + (a.correct ? 'ok' : 'no');
+      row.innerHTML = `<span class="mark">${a.correct ? 'OK' : 'X'}</span><span class="txt">${a.topic}</span>`;
+      reviewEl.appendChild(row);
+    });
+
+    document.getElementById('btn-review-wrong').style.display =
+      answers.some(a=>!a.correct) ? 'block' : 'none';
+
+    show('results');
+  }
+
+  document.getElementById('btn-retry').addEventListener('click', ()=>{
+    idx = 0; answers = [];
+    pool = buildPool(QUESTIONS);
+    show('quiz');
+    renderQuestion();
+  });
+
+  document.getElementById('btn-review-wrong').addEventListener('click', ()=>{
+    const wrongTopics = new Set(answers.filter(a=>!a.correct).map(a=>a.topic));
+    const wrongQuestions = QUESTIONS.filter(q=>wrongTopics.has(q.topic));
+    idx = 0; answers = [];
+    pool = buildPool(wrongQuestions);
+    show('quiz');
+    renderQuestion();
+  });
+
+  show('start');
+})();
+</script>
+</body>
+</html>
